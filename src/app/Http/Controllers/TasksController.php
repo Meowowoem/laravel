@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -30,5 +31,27 @@ class TasksController extends Controller
         dd($task);
 
         return 'Created';
+    }
+
+    public function getTasks(): array
+    {
+        return Task::all()->toArray();
+    }
+
+    public function getTask($id): array
+    {
+        return Task::all()->find($id)->toArray();
+    }
+
+    public function deleteTask($id)
+    {
+        return Task::all()->find($id)->delete();
+    }
+
+    public function closeTask($id)
+    {
+        $task = Task::all()->find($id);
+        $task->status = 'done';
+        $task->save();
     }
 }
