@@ -2,34 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use GuzzleHttp\Psr7\Response;
+use App\Http\Controllers\TaskStatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Task;
+use Illuminate\Validation\Rule;
 
 class TasksController extends Controller
 {
-    public function addTask(Request $request): Task
+    public function addTask(Request $request)
     {
-        $validated = Validator::make($request->all(), [
-            'name' => 'string|max:20'
-        ]);
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:20',
+                'status' => [Rule::enum(TaskStatus::class)]
+            ]);
 
-        if ($validated->fails()) {
-            return 'Name length > 20';
+        if ($validator->fails()) {
+            return $validator->errors();
         };
 
         $description = $request->input('description');
 
         $task = new Task;
-        $task->name = $validated->getValue('name');
-        $task->description = $validated->getValue('description');
-        $task->status = 'active';
+        $task->name = $validator->getValue('name');
+        $task->description = $validator->getValue('description');
+        $task->status = TaskStatus::active->name;
 
         $task->save();
 
-        return $task;
+        return $task->toJson();
     }
 
     public function getTasks(): array
