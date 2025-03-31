@@ -10,7 +10,7 @@ use App\Models\Task;
 
 class TasksController extends Controller
 {
-    public function addTask(Request $request): string
+    public function addTask(Request $request): Task
     {
         $validated = Validator::make($request->all(), [
             'name' => 'string|max:20'
@@ -28,14 +28,13 @@ class TasksController extends Controller
         $task->status = 'active';
 
         $task->save();
-        dd($task);
 
-        return 'Created';
+        return $task;
     }
 
     public function getTasks(): array
     {
-        return Task::all()->toArray();
+        return Task::paginate(20)->toArray();
     }
 
     public function getTask($id): array
