@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - '80:80'
+    volumes:
+      - './src:/var/www/html'
+      - './docker/nginx/conf.d:/etc/nginx/conf.d'
+
+  php:
+    build:
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - './src:/var/www/html'
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container1
+    environment:
+        POSTGRES_USER: root
+        POSTGRES_PASSWORD: root
+        POSTGRES_DB: postgres_db
+        PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - '9090:80'
+    environment:
+      - PMA_HOST=postgres
+      - PMA_PORT=5432
