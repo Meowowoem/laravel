@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\TaskStatus;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Task;
 use Illuminate\Validation\Rule;
+use Spatie\FlareClient\Http\Response;
 
 class TasksController extends Controller
 {
@@ -36,7 +38,7 @@ class TasksController extends Controller
 
         $task->save();
 
-        return $task->toJson();
+        return $task;
     }
 
     public function getTasks(Request $request): array
@@ -44,20 +46,53 @@ class TasksController extends Controller
         return $request->user()->getUserTasks()->paginate(20)->toArray();
     }
 
-    public function getTask($id): array
-    {
-        return Task::all()->find($id)->toArray();
-    }
-
-    public function deleteTask($id)
-    {
-        return Task::all()->find($id)->delete();
-    }
-
-    public function closeTask($id)
+    public function getTask(Request $request, $id)
     {
         $task = Task::all()->find($id);
-        $task->status = 'done';
-        $task->save();
+        $user = $request->user();
+
+        if ($task->user_id == $user->id) {
+            return Task::all()->find($id)->toArray();
+        }
+
+        return response()->json([
+            'message' => 'Нет доступа'
+        ], 403);
+    }
+
+    public function deleteTask(Request $request, $id)
+    {
+        $task = Task::all()->find($id);
+        $user = $request->user();
+
+        if ($task->user_id == $user->id) {
+            $task->delete();
+            return response()->json([
+                'message' => 'done'
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Нет доступа'
+        ], 403);
+    }
+
+    public function closeTask(Request $request, $id)
+    {
+        $task = Task::all()->find($id);
+        $user = $request->user();
+
+        if ($task->user_id == $user->id) {
+            $task->status = 'done';
+            $task->save();
+
+            return response()->json([
+                'message' => 'done'
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Нет доступа'
+        ], 403);
     }
 }
